@@ -1,0 +1,71 @@
+<?php
+
+define('COMMERCE_KOMTET_KASSA_PERMISSION', 'configure store');
+define('COMMERCE_KOMTET_KASSA_API_URL', 'https://kassa.komtet.ru');
+
+define('COMMERCE_KOMTET_KASSA_REPORT_STATUS_NEW', 'new');
+define('COMMERCE_KOMTET_KASSA_REPORT_STATUS_ERROR', 'error');
+define('COMMERCE_KOMTET_KASSA_REPORT_STATUS_SUCCESS', 'success');
+define('COMMERCE_KOMTET_KASSA_REPORT_STATUS_FAIL', 'fail');
+define('COMMERCE_KOMTET_KASSA_FORMAT_DATE', 'd.m.Y в H:i:s');
+define('COMMERCE_KOMTET_KASSA_DEBUG', FALSE);
+
+require_once __DIR__ . '/includes/commerce_komtet_kassa_helpers.inc';
+require_once __DIR__ . '/includes/commerce_komtet_kassa_hooks.commerce.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function commerce_komtet_kassa_menu() {
+    $items = array();
+
+    $items['admin/commerce/config/komtet-kassa'] = array(
+        'title' => 'KOMTET Kassa settings',
+        'description' => 'KOMTET Kassa system integration settings.',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('komtet_kassa_settings_form'),
+        'file' => 'includes/commerce_komtet_kassa_settings.admin.inc',
+        'access arguments' => array(COMMERCE_KOMTET_KASSA_PERMISSION),
+    );
+
+    $items['admin/commerce/config/komtet-kassa/settings'] = array(
+        'title' => 'Настройки',
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+        'weight' => -10,
+        'access arguments' => array(COMMERCE_KOMTET_KASSA_PERMISSION),
+    );
+
+    $items['admin/commerce/config/komtet-kassa/reports'] = array(
+        'title' => 'Отчёты',
+        'type' => MENU_LOCAL_TASK,
+        'weight' => -9,
+        'page callback' => 'komtet_kassa_reports',
+        'access arguments' => array(COMMERCE_KOMTET_KASSA_PERMISSION),
+        'file' => 'includes/commerce_komtet_kassa_reports.admin.inc',
+    );
+
+    $items['admin/commerce/config/komtet-kassa/reports/%/show'] = array(
+        'title' => 'Детали отчета',
+        'page callback' => 'komtet_kassa_show_report',
+        'page arguments' => array(5),
+        'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+        'access arguments' => array(COMMERCE_KOMTET_KASSA_PERMISSION),
+        'file' => 'includes/commerce_komtet_kassa_reports.admin.inc'
+    );
+
+    $items['komtet-kassa/success'] =array(
+        'page callback' => 'komtet_kassa_report_handler',
+        'page arguments' => array('success'),
+        'access callback' => TRUE,
+        'file' => 'includes/commerce_komtet_kassa_report_handler.inc'
+    );
+
+    $items['komtet-kassa/fail'] =array(
+        'page callback' => 'komtet_kassa_report_handler',
+        'page arguments' => array('fail'),
+        'access callback' => TRUE,
+        'file' => 'includes/commerce_komtet_kassa_report_handler.inc'
+    );
+
+    return $items;
+}

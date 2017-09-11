@@ -1,0 +1,11 @@
+name = Commerce KOMTET Kassa
+description = Фискализация платежей с помощью сервиса КОМТЕТ Касса для плагина Drupal Commerce. 
+package = Commerce (KOMTET Kassa)
+core = 7.x
+version = "7.x-1.0"
+core = "7.x"
+configure = admin/commerce/config/komtet-kassa
+
+dependencies[] = commerce
+dependencies[] = commerce_payment
+dependencies[] = entity

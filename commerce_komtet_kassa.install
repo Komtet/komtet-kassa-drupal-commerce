@@ -1,0 +1,55 @@
+<?php
+
+
+/**
+ * Implements hook_schema().
+ */
+function commerce_komtet_kassa_schema() {
+    $schema['commerce_komtet_kassa_reports'] = array(
+        'description' => 'Storage for paid orders external UUIDs received from KOMTET Kassa.',
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial', 
+                'size' => 'normal', 
+                'not null' => TRUE
+            ),
+            'created_at' => array(
+                'type' => 'int'
+            ),
+            'updated_at' => array(
+                'type' => 'int'
+            ),
+            'order_id' => array(
+                'type' => 'int',
+                'size' => 'normal',
+                'not null' => TRUE
+            ),
+            'operation_id' => array(
+                'type' => 'varchar',
+                'length' => 255,
+            ),
+            'status' => array(
+                'type' => 'varchar',
+                'length' => 32,
+                'not null' => TRUE,
+                'default' => 'new'
+            ),
+            'result' => array(
+                'type' => 'text'
+            ),
+            'error' => array(
+                'type' => 'text',
+            )
+        ),
+        'primary key' => array('id')
+    );
+
+    return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function commerce_komtet_kassa_uninstall() {
+    drupal_uninstall_schema('commerce_komtet_kassa_reports');
+}
