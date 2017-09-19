@@ -24,3 +24,11 @@ function komtet_kassa_tax_systems() {
         '5' => 'Патент'
     );
 }
+
+function komtet_kassa_report_detail_link($id) {
+    return '<a href="/admin/commerce/komtet-kassa/reports/' . $id . '/show">' . $id . '</a>';
+}
+
+function komtet_kassa_order_link($id) {
+    return '<a href="/admin/commerce/orders/' . $id . '">' . $id . '</a>';
+}

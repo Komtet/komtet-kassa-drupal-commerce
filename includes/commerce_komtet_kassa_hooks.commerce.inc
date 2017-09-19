@@ -18,17 +18,6 @@ use Komtet\KassaSdk\Exception\SdkException;
 function commerce_komtet_kassa_commerce_payment_order_paid_in_full($order, $transaction) {
     komtet_kassa_fiscalize($order, $transaction);
 }
-  
-/**
-* Implements hook_commerce_order_presave().
-*/
-function commerce_komtet_kassa_commerce_order_presave($order) {
-    if (in_array($order->status, array('checkout_complete', 'pending'))) {
-        if (COMMERCE_KOMTET_KASSA_DEBUG) {
-            komtet_kassa_fiscalize($order);
-        }
-    }
-}
 
 function get_amount($value, $get_value = True) {
     $amount = $value->amount;
@@ -75,12 +64,9 @@ function komtet_kassa_fiscalize($order, $transaction = NULL, $op = 'sell') {
     }
   
     if ($transaction) {
-        // $transaction->payment_method, array('default' => 2));
-        $payment_method_type = 1;
         $check->addPayment(Payment::createCard(get_amount($transaction, false)));
     }
     else {
-        // Default transaction parameters for debug reasons. todo: wipe out.
         $check->addPayment(Payment::createCard(get_amount($wrapper->commerce_order_total)));
     }
 
@@ -95,8 +81,7 @@ function komtet_kassa_fiscalize($order, $transaction = NULL, $op = 'sell') {
     $response = $error_message = NULL;
     try {
         watchdog('commerce_komtet_kassa', drupal_json_encode($check->asArray()), array(), WATCHDOG_NOTICE, $link = NULL);
-        // $response = $queueManager->putCheck($check);
-        $response = drupal_json_decode('{"print_queue_id": 4332, "external_id": "1", "id": 1353, "state": "new"}');
+        $response = $queueManager->putCheck($check);
     } catch (SdkException $e) {
         $error_message = $e->getMessage();
         watchdog('commerce_komtet_kassa',  $error_message, array(), WATCHDOG_ERROR, $link = NULL);
@@ -112,4 +97,69 @@ function komtet_kassa_fiscalize($order, $transaction = NULL, $op = 'sell') {
     );
     db_insert('commerce_komtet_kassa_reports')->fields($insert_fields)
                                               ->execute();
+    
+    return $error_message === NULL;
+}
+
+function commerce_fiscalize_form($form, &$form_state, $order) {
+    $form = array();
+    $form_state['order'] = $order;
+
+    $form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Фискализировать'),
+	);
+
+    return $form;
+}
+
+function commerce_fiscalize_form_submit($form, &$form_state) {
+    $order = commerce_order_load($form_state['order']->order_id);
+    if (komtet_kassa_fiscalize($order)) {
+        drupal_set_message('Заказ отправлен на фискализацию в сервис KOMTET Касса');
+    } else {
+        drupal_set_message('При отправке на фискализацию в сервис KOMTET Касса произошла ошибка', 'error');
+    }
+    watchdog('commerce_komtet_kassa', 'Заказ #%order_id был отправлен на фискализацию в систему КОМТЕТ Касса вручную', array('%order_id' => $order->order_id), WATCHDOG_NOTICE, $link = NULL);
+}
+
+function commerce_fiscalize_ui_order_tab($order) {
+
+    $header = array(
+        array('data' => '#', 'field' => 'id'),
+        array('data' => 'Дата создания задачи', 'field' => 'created_at'),
+        array('data' => 'Дата обновления задачи', 'field' => 'updated_at'),
+        array('data' => 'Номер операции в очереди', 'field' => 'operation_id'),
+        array('data' => 'Статус задачи', 'field' => 'status'),
+    );
+
+    $select = db_select('commerce_komtet_kassa_reports', 'reports');
+
+    $select->fields('reports', array('id', 'order_id', 'created_at', 'updated_at', 'operation_id', 'status'))
+           ->condition('order_id', $order->order_number)
+           ->orderBy('id', 'desc');
+
+    $db_result = $select->execute();
+
+    $rows = array();
+
+    if ($db_result->rowCount() > 0) {
+        $table = '<p><strong>Список задач для фискализации заказа:</strong></p>';
+        foreach ($db_result as $row) {
+            $rows[] = array(
+                'id' => komtet_kassa_report_detail_link($row->id),
+                'created_at' => komtet_kassa_display_date($row->created_at),
+                'updated_at' => komtet_kassa_display_date($row->updated_at),
+                'operation_id' => $row->operation_id,
+                'status' => komtet_kassa_display_report_status($row->status, 'Неизвестно')
+            );
+        }
+        $table .= theme('table', array('header' => $header, 'rows' => $rows));
+    } else {
+        $table = theme('status_messages', drupal_set_message('Для заказа нет отправленных задач на фискализацию в сервис КОМТЕТ Касса', 'warning'));
+    }
+
+    $form = drupal_get_form('commerce_fiscalize_form', $order);
+
+    return $table . '<br/>' . drupal_render($form); 
 }

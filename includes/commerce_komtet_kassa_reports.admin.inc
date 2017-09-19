@@ -25,8 +25,8 @@ function komtet_kassa_reports() {
 
     foreach ($results as $row) {
         $rows[] = array(
-            'id' => '<a href="/admin/commerce/config/komtet-kassa/reports/' . $row->id . '/show">' . $row->id . '</a>',
-            'order_id' => '<a href="/admin/commerce/orders/' . $row->order_id . '">' . $row->order_id . '</a>',
+            'id' => komtet_kassa_report_detail_link($row->id),
+            'order_id' => komtet_kassa_order_link($row->order_id),
             'created_at' => komtet_kassa_display_date($row->created_at),
             'updated_at' => komtet_kassa_display_date($row->updated_at),
             'operation_id' => $row->operation_id,

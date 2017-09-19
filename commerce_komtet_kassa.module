@@ -19,23 +19,34 @@ require_once __DIR__ . '/includes/commerce_komtet_kassa_hooks.commerce.inc';
 function commerce_komtet_kassa_menu() {
     $items = array();
 
-    $items['admin/commerce/config/komtet-kassa'] = array(
-        'title' => 'KOMTET Kassa settings',
-        'description' => 'KOMTET Kassa system integration settings.',
+    $items['admin/commerce/orders/%commerce_order/komtet-kassa-fiscalize'] = array(
+        'title' => 'Фискализация',
+        'page callback' => 'commerce_fiscalize_ui_order_tab',
+        'page arguments' => array(3),
+        'access callback' => 'commerce_payment_transaction_order_access',
+        'access arguments' => array('view', 3),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 10,
+        'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE
+    );
+
+    $items['admin/commerce/komtet-kassa'] = array(
+        'title' => 'KOMTET Касса',
+        'description' => 'KOMTET Kassa system integration.',
         'page callback' => 'drupal_get_form',
         'page arguments' => array('komtet_kassa_settings_form'),
         'file' => 'includes/commerce_komtet_kassa_settings.admin.inc',
         'access arguments' => array(COMMERCE_KOMTET_KASSA_PERMISSION),
     );
 
-    $items['admin/commerce/config/komtet-kassa/settings'] = array(
+    $items['admin/commerce/komtet-kassa/settings'] = array(
         'title' => 'Настройки',
         'type' => MENU_DEFAULT_LOCAL_TASK,
         'weight' => -10,
         'access arguments' => array(COMMERCE_KOMTET_KASSA_PERMISSION),
     );
 
-    $items['admin/commerce/config/komtet-kassa/reports'] = array(
+    $items['admin/commerce/komtet-kassa/reports'] = array(
         'title' => 'Отчёты',
         'type' => MENU_LOCAL_TASK,
         'weight' => -9,
@@ -44,10 +55,10 @@ function commerce_komtet_kassa_menu() {
         'file' => 'includes/commerce_komtet_kassa_reports.admin.inc',
     );
 
-    $items['admin/commerce/config/komtet-kassa/reports/%/show'] = array(
+    $items['admin/commerce/komtet-kassa/reports/%/show'] = array(
         'title' => 'Детали отчета',
         'page callback' => 'komtet_kassa_show_report',
-        'page arguments' => array(5),
+        'page arguments' => array(4),
         'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
         'access arguments' => array(COMMERCE_KOMTET_KASSA_PERMISSION),
         'file' => 'includes/commerce_komtet_kassa_reports.admin.inc'
