@@ -1,10 +1,5 @@
 <?php
 
-ini_set('error_reporting', E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-
- 
 require __DIR__ . '/libs/komtet-kassa-php-sdk/autoload.php';
 
 use Komtet\KassaSdk\Client;
@@ -15,8 +10,6 @@ use Komtet\KassaSdk\Position;
 use Komtet\KassaSdk\Vat;
 use Komtet\KassaSdk\Exception\ClientException;
 use Komtet\KassaSdk\Exception\SdkException;
-
-
 
 
 // Add Position into check with discount
@@ -41,8 +34,7 @@ function AddPositionDiscount($wrapper,$discount,&$check)
         {
             $item_name = $line_item_wrapper->commerce_product->value()->title;
             $check->addPosition(new Position($item_name, $item_price, $item_quantity, $item_sum, 0, new Vat(Vat::RATE_NO)));
-        }
-         
+        }        
     
     }
     
@@ -65,27 +57,20 @@ function AddPosition($wrapper,&$check)
         {
             $item_name = $line_item_wrapper->commerce_product->value()->title;
             $check->addPosition(new Position($item_name, $item_price, $item_quantity, $item_sum, 0, new Vat(Vat::RATE_NO)));
-        } 
-        
+        }         
         if (!in_array($line_item_type, commerce_product_line_item_types()) && $line_item_type =='shipping' ) //looking for shipping
         {
             $item_name = $line_item_wrapper->commerce_product->value()->title;
             $check->addPosition(new Position($item_name, $item_price, $item_quantity, $item_sum, 0, new Vat(Vat::RATE_NO)));
-        }
-        
-    }
-    
+        }        
+    }    
     
 }//end of AddPosition
-
-
-
 
 //is there order discount
 function IsOrderDiscount($wrapper)
 {
-    $isOrderDiscount = false;
-      
+    $isOrderDiscount = false;      
     foreach ($wrapper->commerce_line_items as $key => $line_item_wrapper)  // looking for discount 
     {
         $line_item_type = $line_item_wrapper->getBundle();
@@ -98,48 +83,31 @@ function IsOrderDiscount($wrapper)
     return $isOrderDiscount;
 }// end of IsOrderDiscount
 
-
-
-
 // get discount 
  function GetDiscountOne($wrapper)
  {
     $discount_summ = 0;
-      
-
     $line_items = $wrapper->commerce_line_items;
     $total = commerce_line_items_total($line_items);
     $summ_without_discount = $total['amount']/100; 
-  
+	 
     foreach ($wrapper->commerce_line_items as $key => $line_item_wrapper) 
     {
         $line_item_type = $line_item_wrapper->getBundle();
-
         if (!in_array($line_item_type, commerce_product_line_item_types()) && $line_item_type =='shipping' ) //looking for shipping
         {
             $shipping_sum = get_amount($line_item_wrapper->commerce_total);
-            $summ_without_discount = $summ_without_discount - $shipping_sum;
-            //echo "<br> shipping_summ_in - ".$shipping_sum;
+            $summ_without_discount = $summ_without_discount - $shipping_sum;           
         }
 
         if (!in_array($line_item_type, commerce_product_line_item_types()) && $line_item_type =='commerce_discount') 
         {
              $discount_summ = abs(get_amount($line_item_wrapper->commerce_total)); 
-             echo "<br> discount_summ_in - ".$discount_summ;
         }
     } 
-    //echo "<br> discount_summ - ".$discount_summ;
     $discount = $discount_summ/($discount_summ + $summ_without_discount);
-    //echo "<br> summ_wthout_disc - ".$summ_without_discount;
-   // echo "<br> discount - ".$discount;
-
-    
     return $discount;
-
  }//end of GetDiscountOne
-
-
-
 
 
 /**
@@ -162,10 +130,6 @@ function get_quantity($value) {
     return (float) number_format($value->quantity->value(), 1);
 }
 
-
-
-
-
 // main func
 function komtet_kassa_fiscalize($order, $transaction = NULL, $op = 'sell') {
 
@@ -175,21 +139,15 @@ function komtet_kassa_fiscalize($order, $transaction = NULL, $op = 'sell') {
 
     // todo: include sell_refund, sel_correction, buy, buy_refund, buy_correction.
     $wrapper = entity_metadata_wrapper('commerce_order', $order->order_id);
-    //$line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-    
-    
-    
-    
-    
+    //$line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);   
+        
     $check = new Check($order->order_id, 
             $wrapper->mail->value(), 
             Check::INTENT_SELL, 
             (int) variable_get('commerce_komtet_kassa_tax_system', '1'));
     
     $check->setShouldPrint(variable_get('commerce_komtet_kassa_should_print'));
-    
-    
-    
+	
     //is there order discount
     if(IsOrderDiscount($wrapper))
     { 
@@ -198,8 +156,7 @@ function komtet_kassa_fiscalize($order, $transaction = NULL, $op = 'sell') {
     else
     {
         AddPosition($wrapper,$check); // add position into check without discount
-    }
-     
+    }     
   
     if ($transaction) {
         $check->addPayment(Payment::createCard(get_amount($transaction, false)));
