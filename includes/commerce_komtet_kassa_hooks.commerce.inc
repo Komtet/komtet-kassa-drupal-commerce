@@ -105,7 +105,7 @@ function IsOrderDiscount($wrapper)
              $discount_summ = abs(get_amount($line_item_wrapper->commerce_total)); 
         }
     } 
-    $discount = $discount_summ/($discount_summ + $summ_without_discount);
+    $discount = round($discount_summ/($discount_summ + $summ_without_discount),2);
     return $discount;
  }//end of GetDiscountOne
 
