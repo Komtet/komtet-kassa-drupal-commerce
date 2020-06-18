@@ -14,8 +14,8 @@ function komtet_kassa_settings_form() {
 
     $form['commerce_komtet_kassa_shop_id'] = array(
         '#type' => 'textfield',
-        '#title' => 'Идентификатор магазина',
-        '#description' => 'Идентификатор вы найдете в личном кабинете КОМТЕТ Кассы: <a href="https://kassa.komtet.ru/manage/shops">Магазины</a>',
+        '#title' => 'ID магазина',
+        '#description' => 'Скопируйте из раздела <a href="https://kassa.komtet.ru/manage/shops" target="_blank">Магазины</a>',
         '#default_value' => variable_get('commerce_komtet_kassa_shop_id', ''),
         '#required' => TRUE,
     );
@@ -23,14 +23,15 @@ function komtet_kassa_settings_form() {
     $form['commerce_komtet_kassa_secret_key'] = array(
         '#type' => 'textfield',
         '#title' => 'Секретный ключ магазина',
-        '#description' => 'Ключ вы найдете в личном кабинете КОМТЕТ Кассы, в настройках выбранного магазина: <a href="https://kassa.komtet.ru/manage/shops">Магазины</a>',
+        '#description' => 'Скопируйте из раздела <a href="https://kassa.komtet.ru/manage/shops" target="_blank">Магазины</a>',
         '#default_value' => variable_get('commerce_komtet_kassa_secret_key', ''),
         '#required' => TRUE,
     );
 
     $form['commerce_komtet_kassa_queue_id'] = array(
         '#type' => 'textfield',
-        '#title' => 'Идентификатор очереди',
+        '#title' => 'ID очереди',
+        '#description' => 'Скопируйте из раздела <a href="https://kassa.komtet.ru/manage/poses" target="_blank">Кассы</a>',
         '#default_value' => variable_get('commerce_komtet_kassa_queue_id', ''),
         '#required' => TRUE,
     );
